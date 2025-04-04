@@ -1,60 +1,41 @@
 import numpy as np
 import soundfile as sf
 import librosa
+import librosa.display
 import matplotlib.pyplot as plt
-from utils import stft, svd_decompose
+from utils import svd, stft, istft
 
-def plot_spectrogram(spectrogram, title='Spectrogram', filename=None):
-    """
-    Function to plot the magnitude of the spectrogram and save it to a file.
-    """
+def plot_spectrogram(S, sr, title='Spectrogram', filename=None):
     plt.figure(figsize=(10, 6))
-    plt.imshow(np.log1p(np.abs(spectrogram)), aspect='auto', origin='lower', cmap='inferno')
-    plt.colorbar(label='Log Magnitude')
+    librosa.display.specshow(librosa.amplitude_to_db(S, ref=np.max), sr=sr, y_axis='log', x_axis='time', cmap='inferno')
+    plt.colorbar(format='%+2.0f dB')
     plt.title(title)
-    plt.xlabel('Time Frames')
-    plt.ylabel('Frequency Bins')
-
     if filename:
-        plt.savefig(filename)  # Save the plot as an image file
+        plt.savefig(filename)
     else:
-        plt.show()  # Show the plot if no filename is provided
+        plt.show()
 
-def svd_denoise(audio_path, output_path, threshold_ratio=0.1):
-    y, sr = sf.read(audio_path)
+def svd_denoise(audio_path, output_path, rank=10):
+    y, sr = librosa.load(audio_path, sr=None)
 
-    # Perform the STFT and get the full complex spectrogram
-    spectrogram = stft(y)
+    S_complex = stft(y)
+    magnitude, phase = np.abs(S_complex), np.angle(S_complex)
 
-    # Get magnitude and phase from the complex spectrogram
-    magnitude, phase = np.abs(spectrogram), np.angle(spectrogram)
+    plot_spectrogram(magnitude, sr, title='Original Spectrogram', filename='original_spectrogram.png')
+    U, s, Vt = svd(magnitude)
 
-    # Save the original spectrogram
-    plot_spectrogram(spectrogram, title='Original Spectrogram', filename='original_spectrogram.png')
+    s_denoised = np.zeros_like(s)
+    s_denoised[:rank] = s[:rank]
 
-    # Perform SVD on the magnitude spectrogram
-    U, S, Vt = svd_decompose(magnitude)
+    denoised_magnitude = np.dot(U, np.dot(np.diag(s_denoised), Vt))
 
-    # Apply threshold to singular values
-    threshold = threshold_ratio * np.max(S)
-    S_denoised = np.where(S > threshold, S, 0)
+    plot_spectrogram(denoised_magnitude, sr, title='Denoised Spectrogram', filename='denoised_spectrogram.png')
+    S_denoised_complex = denoised_magnitude * np.exp(1j * phase)
 
-    # Reconstruct the denoised magnitude spectrogram
-    denoised_magnitude = np.dot(U, np.dot(np.diag(S_denoised), Vt))
-
-    # Recreate the denoised spectrogram with the same phase shape as magnitude
-    denoised_spectrogram = denoised_magnitude * np.exp(1j * phase)
-
-    # Save the denoised spectrogram
-    plot_spectrogram(denoised_spectrogram, title='Denoised Spectrogram', filename='denoised_spectrogram.png')
-
-    # Convert back to time-domain signal using librosa's inverse STFT
-    y_denoised = librosa.istft(denoised_spectrogram)
-
-    # Save the denoised audio to the specified output file
+    y_denoised = istft(S_denoised_complex)
     sf.write(output_path, y_denoised, sr)
 
 if __name__ == "__main__":
-    input_file = "data/raw/car_15dB/sp06_car_sn15.wav"
+    input_file = "data/raw/sp13_restaurant_sn15.wav"
     output_file = "data/processed/denoised_audio.wav"
     svd_denoise(input_file, output_file)
