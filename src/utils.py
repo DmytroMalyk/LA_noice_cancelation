@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def stft(audio, fft_size=1024, hop_size=512):
+def stft(audio, fft_size=2048, hop_size=1024):
     window = np.hanning(fft_size)
     frames = []
     for i in range(0, len(audio) - fft_size, hop_size):
@@ -10,7 +10,7 @@ def stft(audio, fft_size=1024, hop_size=512):
         frames.append(spectrum)
     return np.array(frames).T
 
-def istft(S_complex, fft_size=1024, hop_size=512):
+def istft(S_complex, fft_size=2048, hop_size=1024):
     time_frames = S_complex.shape[1]
     signal_len = time_frames * hop_size + fft_size
     signal = np.zeros(signal_len)
