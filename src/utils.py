@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from pystoi.stoi import stoi
 
 def stft(audio, fft_size=2048, hop_size=1024):
     window = np.hanning(fft_size)
@@ -82,3 +83,13 @@ def svd(A):
     U = A.dot(V) / s
 
     return U, s, V.T
+
+def compute_mse(clean, denoised):
+    clean = np.asarray(clean)
+    denoised = np.asarray(denoised)
+    return np.mean((clean - denoised) ** 2)
+
+def compute_stoi(clean, denoised, sample_rate):
+    clean = np.asarray(clean)
+    denoised = np.asarray(denoised)
+    return stoi(clean, denoised, sample_rate, extended=False)

@@ -3,7 +3,7 @@ import soundfile as sf
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
-from utils import svd, stft, istft
+from utils import svd, stft, istft, compute_mse, compute_stoi
 from noise_methods import add_white_noise, add_pink_noise, add_click_noise
 
 def plot_spectrogram(S, sr, title='Spectrogram', filename=None):
@@ -65,6 +65,19 @@ def svd_denoise_from_clean(clean_audio_path, noisy_output_path, denoised_output_
 
     # Save denoised audio
     sf.write(denoised_output_path, y_denoised, sr)
+
+    # --- Evaluation Metrics ---
+    min_len = min(len(y_clean), len(y_denoised))
+    y_clean_eval = y_clean[:min_len]
+    y_denoised_eval = y_denoised[:min_len]
+
+    mse_value = compute_mse(y_clean_eval, y_denoised_eval)
+    stoi_value = compute_stoi(y_clean_eval, y_denoised_eval, sr)
+
+    print(f"\n📊 Evaluation Metrics:")
+    print(f"  🔹 MSE  = {mse_value:.6f}")
+    print(f"  🔹 STOI = {stoi_value:.4f}")
+
 
 if __name__ == "__main__":
     clean_file = "data/raw/sp01.wav"
