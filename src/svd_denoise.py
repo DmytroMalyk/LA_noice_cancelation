@@ -15,7 +15,7 @@ def plot_spectrogram(S, sr, title='Spectrogram', filename=None):
     else:
         plt.show()
 
-def svd_denoise_from_clean(clean_audio_path, noisy_output_path, denoised_output_path, noise_method='add_white_noise', snr_db=20, threshold=0.01):
+def svd_denoise_from_clean(clean_audio_path, noisy_output_path, denoised_output_path, noise_method='add_white_noise', snr_db=20, threshold=0.9):
     # Load clean audio
     y_clean, sr = librosa.load(clean_audio_path, sr=None)
 
@@ -47,9 +47,15 @@ def svd_denoise_from_clean(clean_audio_path, noisy_output_path, denoised_output_
     # SVD
     U, s, Vt = svd(magnitude_norm)
 
-    # Denoising by thresholding: setting singular values below the threshold to zero
-    s_denoised = np.copy(s)
-    s_denoised[s_denoised < threshold] = 0
+    # Denoising by thresholding
+    energy = np.sum(s)
+    target_energy = threshold * energy
+
+    cumulative_energy = np.cumsum(s)
+    k = np.searchsorted(cumulative_energy, target_energy) + 1
+
+    s_denoised = np.zeros_like(s)
+    s_denoised[:k] = s[:k]
 
     denoised_magnitude_norm = np.dot(U, np.dot(np.diag(s_denoised), Vt))
 
@@ -66,7 +72,7 @@ def svd_denoise_from_clean(clean_audio_path, noisy_output_path, denoised_output_
     # Save denoised audio
     sf.write(denoised_output_path, y_denoised, sr)
 
-    # --- Evaluation Metrics ---
+    # Evaluation Metrics
     min_len = min(len(y_clean), len(y_denoised))
     y_clean_eval = y_clean[:min_len]
     y_denoised_eval = y_denoised[:min_len]
@@ -74,14 +80,14 @@ def svd_denoise_from_clean(clean_audio_path, noisy_output_path, denoised_output_
     mse_value = compute_mse(y_clean_eval, y_denoised_eval)
     stoi_value = compute_stoi(y_clean_eval, y_denoised_eval, sr)
 
-    print(f"\n📊 Evaluation Metrics:")
-    print(f"  🔹 MSE  = {mse_value:.6f}")
-    print(f"  🔹 STOI = {stoi_value:.4f}")
+    print(f"\n Evaluation Metrics:")
+    print(f"   MSE  = {mse_value:.6f}")
+    print(f"   STOI = {stoi_value:.4f}")
 
 
 if __name__ == "__main__":
-    clean_file = "data/raw/sp01.wav"
+    clean_file = "data/raw/sp02.wav"
     noised_file = "data/processed/noised_audio.wav"
     denoised_file = "data/processed/denoised_audio.wav"
 
-    svd_denoise_from_clean(clean_file, noised_file, denoised_file, noise_method='add_white_noise', snr_db=60, threshold=0.3)
+    svd_denoise_from_clean(clean_file, noised_file, denoised_file, noise_method='add_white_noise', snr_db=60, threshold=0.97)

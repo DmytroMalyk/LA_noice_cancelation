@@ -70,7 +70,7 @@ def power_iteration_deflation(A, num_simulations=100):
 def svd(A):
     AT = A.T
     ATA = AT.dot(A)
-    
+
     eig_vals, eig_vecs = power_iteration_deflation(ATA)
 
     sorted_indices = np.argsort(eig_vals)[::-1]

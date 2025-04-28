@@ -21,7 +21,6 @@ def add_click_noise(clean, num_clicks=100, click_strength=0.5, click_length=10):
 # Example usage
 if __name__ == "__main__":
     clean_path = "data/raw/sp13.wav"
-    background_path = "data/raw/restaurant_background.wav"
     y, sr = librosa.load(clean_path, sr=None)
 
     white_noised = add_white_noise(y)
