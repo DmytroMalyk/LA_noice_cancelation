@@ -1,5 +1,10 @@
 # LA_noice_cancelation
 
+## 👨‍💻 Authors:
+- **Dmytro Malyk** - (https://github.com/DmytroMalyk)
+- **Katya Hushchuk** - (https://github.com/KatiaHushchuk)
+- **Sofia Sydorchuk** - (https://github.com/SydorchukSofia)
+
 This project applies audio denoising techniques using Singular Value Decomposition (SVD). It allows you to inject various types of noise (white, pink, click) into clean audio files and then denoise them using a custom SVD-based approach. The processed audio and visualizations (spectrograms) help evaluate the effectiveness of the denoising method.
 
 ---
