@@ -44,7 +44,7 @@ By default, it uses:
 - **Input file:** data/raw/sp02.wav
 - **Output files:** data/processed/noised_audio.wav and data/processed/denoised_audio.wav
 - **Noise type:** White noise
-- **SVD energy threshold:** 0.97
+- **SVD energy threshold:** 0.9
 
 ## 🛠 Requirements
 
