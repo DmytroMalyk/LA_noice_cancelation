@@ -90,4 +90,4 @@ if __name__ == "__main__":
     noised_file = "data/processed/noised_audio.wav"
     denoised_file = "data/processed/denoised_audio.wav"
 
-    svd_denoise_from_clean(clean_file, noised_file, denoised_file, noise_method='add_white_noise', snr_db=60, threshold=0.97)
+    svd_denoise_from_clean(clean_file, noised_file, denoised_file, noise_method='add_white_noise', snr_db=60, threshold=0.9)
